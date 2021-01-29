@@ -1,6 +1,7 @@
-## FlinkSQL debezium 进行 CDC 维表ETL 到 elasticsearch
+## FlinkSQL debezium 进行 CDC 维表 ETL 到 elasticsearch
 
 ### Docker
+
 ```bash
 docker-compose build
 docker-compose up -d
@@ -8,15 +9,18 @@ docker-compose up -d
 
 可以访问 Flink Web UI (http://localhost:8081), 或者 Kibana (http://localhost:5601)
 
-
 # 注册 debezium 的数据源
+
 ```bash
 curl -i -X DELETE -H "Accept:application/json" -H "Content-Type:application/json" http://localhost:8083/connectors/mysql-source-ec
 curl -i -X POST -H "Accept:application/json" -H "Content-Type:application/json" http://localhost:8083/connectors/ -d @register-ec.json
+curl -i -X GET -H "Accept:application/json" -H "Content-Type:application/json" http://localhost:8083/connectors
 ```
 
-## MySQL数据源
+## MySQL 数据源
+
 ### DDL
+
 ```sql
 CREATE DATABASE ec;
 CREATE TABLE orders(id VARCHAR(40) primary key, user_id VARCHAR(40), amount decimal);
@@ -26,6 +30,7 @@ CREATE TABLE users(id VARCHAR(40) primary key, name VARCHAR(256), age INT);
 ```
 
 ### 写数据
+
 ```sql
 INSERT INTO users(id, name, age) VALUES('1', 'andy', 25);
 INSERT INTO users(id, name, age) VALUES('2', 'mary', 30);
@@ -35,7 +40,9 @@ INSERT INTO orders(id, user_id, amount) VALUES('2', '1', 200);
 ```
 
 ### Kafka
+
 查看数据有没有到达 kafka
+
 ```bash
 docker-compose exec kafka /kafka/bin/kafka-console-consumer.sh \
     --bootstrap-server kafka:9092 \
@@ -44,9 +51,16 @@ docker-compose exec kafka /kafka/bin/kafka-console-consumer.sh \
     --topic shard1.ec.orders
 ```
 
-
 ### FLINK SQL
-#### postgrel 支持 catalog, 注册一个 catalog, 这样可以直接通过JDBC来访问外部元数据.
+
+启动 Flink SQL 客户端:
+
+```bash
+docker-compose exec sql-client ./sql-client.sh
+```
+
+#### postgrel 支持 catalog, 注册一个 catalog, 这样可以直接通过 JDBC 来访问外部元数据.
+
 ```sql
 CREATE CATALOG mysql_ec WITH (
     'type'='jdbc',
@@ -67,7 +81,8 @@ CREATE CATALOG mysql_crm WITH (
 );
 ```
 
-#### MySQL构造 orders 流数据表
+#### MySQL 构造 orders 流数据表
+
 ```sql
 CREATE TABLE orders (
   id STRING,
@@ -84,6 +99,7 @@ CREATE TABLE orders (
 ```
 
 #### Postgrel 构造 orders 流数据表
+
 ```sql
 CREATE TABLE default_catalog.default_database.orders
 WITH (
@@ -94,11 +110,12 @@ WITH (
   'format' = 'debezium-json',
   'scan.startup.mode' = 'earliest-offset'
  )
-LIKE `ec.orders` ( 
+LIKE `ec.orders` (
 EXCLUDING OPTIONS);
 ```
 
 #### MySQL 构造 users 维度数据表
+
 ```sql
 CREATE TABLE users(
   id STRING,
@@ -119,19 +136,22 @@ CREATE TABLE users(
 ```
 
 #### Postgrel 构造 users 维度数据表
+
 ```sql
 CREATE TABLE mysql_crm.crm.users
-LIKE `crm.users` ( 
+LIKE `crm.users` (
 INCLUDING OPTIONS);
 ```
 
 #### Posgrel 使用 catalog
+
 ```sql
 USE CATALOG default_catalog;
 SELECT * FROM orders;
 ```
 
 ### 创建 elasticsearch 目标数据表
+
 ```sql
 CREATE TABLE order_view (
   id STRING PRIMARY KEY NOT ENFORCED,
@@ -146,6 +166,7 @@ CREATE TABLE order_view (
 ```
 
 提交一个持续查询到 Flink 集群:
+
 ```sql
 INSERT INTO order_view
 SELECT orders.id id,
@@ -158,7 +179,9 @@ ON orders.user_id = users.id;
 ```
 
 ### 在 kibana 中查看
+
 http://localhost:5601
 
 ### 参考
+
 https://github.com/morsapaes/flink-sql-CDC#change-data-capture-with-flink-sql-and-debezium
