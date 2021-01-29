@@ -28,6 +28,7 @@ RUN wget -P /opt/sql-client/lib/ https://repo.maven.apache.org/maven2/org/apache
   wget -P /opt/sql-client/lib/ https://repo.maven.apache.org/maven2/org/apache/flink/flink-sql-connector-elasticsearch7_2.11/1.11.1/flink-sql-connector-elasticsearch7_2.11-1.11.1.jar; \
   wget -P /opt/sql-client/lib/ https://repo.maven.apache.org/maven2/org/apache/flink/flink-connector-jdbc_2.11/1.11.1/flink-connector-jdbc_2.11-1.11.1.jar;
 RUN wget -P /opt/sql-client/lib/ https://repo.maven.apache.org/maven2/mysql/mysql-connector-java/8.0.23/mysql-connector-java-8.0.23.jar
+RUN wget -P /opt/sql-client/lib/ https://repo1.maven.org/maven2/com/alibaba/ververica/flink-connector-mysql-cdc/1.1.1/flink-connector-mysql-cdc-1.1.1.jar
 
 # Copy configuration
 COPY conf/* /opt/flink/conf/
