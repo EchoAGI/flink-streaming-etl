@@ -1,0 +1,21 @@
+{
+  "name": "mysql-source-crm",
+  "config": {
+    "connector.class": "io.debezium.connector.mysql.MySqlConnector",
+    "key.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter": "org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": false,
+    "decimal.handling.mode": "double",
+    "database.hostname": "mysql",
+    "database.port": "3306",
+    "database.user": "root",
+    "database.password": "debezium",
+    "database.server.id": "42",
+    "database.server.name": "crm",
+    "database.dbname": "crm",
+    "table.whitelist": "crm.users",
+    "database.history.kafka.bootstrap.servers": "kafka:9092",
+    "database.history.kafka.topic": "crm.users",
+    "include.schema.changes": "true"
+  }
+}

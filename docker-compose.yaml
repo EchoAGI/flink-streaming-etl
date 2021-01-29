@@ -1,0 +1,83 @@
+version: "2"
+services:
+  zookeeper:
+    image: debezium/zookeeper:1.2
+    ports:
+      - "2181:2181"
+  kafka:
+    image: debezium/kafka:1.2
+    ports:
+      - "9092:9092"
+    depends_on:
+      - zookeeper
+    environment:
+      - ZOOKEEPER_CONNECT=zookeeper:2181
+  mysql:
+    image: debezium/example-mysql:1.2
+    ports:
+      - 3306:3306
+    environment:
+      - MYSQL_ROOT_PASSWORD=debezium
+      - MYSQL_USER=mysqluser
+      - MYSQL_PASSWORD=mysqlpw
+  connect:
+    image: debezium/connect:1.2
+    ports:
+      - 8083:8083
+    depends_on:
+      - kafka
+      - mysql
+    environment:
+      - BOOTSTRAP_SERVERS=kafka:9092
+      - GROUP_ID=1
+      - CONFIG_STORAGE_TOPIC=my_connect_configs
+      - OFFSET_STORAGE_TOPIC=my_connect_offsets
+      - STATUS_STORAGE_TOPIC=my_connect_statuses
+  sql-client:
+    build: ./client-image
+    image: demo/debezium-flink-sql
+    depends_on:
+      - kafka
+      - jobmanager
+      - elasticsearch
+    environment:
+      FLINK_JOBMANAGER_HOST: jobmanager
+      ZOOKEEPER_CONNECT: zookeeper
+      KAFKA_BOOTSTRAP: kafka
+      ES_HOST: elasticsearch
+
+  jobmanager:
+    image: flink:1.11.1-scala_2.11
+    ports:
+      - "8081:8081"
+    command: jobmanager
+    environment:
+      - JOB_MANAGER_RPC_ADDRESS=jobmanager
+  taskmanager:
+    image: flink:1.11.1-scala_2.11
+    depends_on:
+      - jobmanager
+    command: taskmanager
+    environment:
+      - JOB_MANAGER_RPC_ADDRESS=jobmanager
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.6.0
+    environment:
+      - cluster.name=docker-cluster
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - discovery.type=single-node
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.6.0
+    ports:
+      - "5601:5601"
