@@ -27,10 +27,42 @@ curl -i -X GET -H "Accept:application/json" -H "Content-Type:application/json" h
 
 ```sql
 CREATE DATABASE ec;
-CREATE TABLE orders(id VARCHAR(40) primary key, user_id VARCHAR(40), amount decimal, ctime DATETIME);
+CREATE TABLE orders(
+  id VARCHAR(40) PRIMARY KEY,
+  user_id VARCHAR(40),
+  amount decimal,
+  status VARCHAR(40),
+  ctime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  utime TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE order_items (
+  id VARCHAR(40) PRIMARY KEY,
+  order_id VARCHAR(40),
+  product_id VARCHAR(40),
+  quantity integer(12),
+  price DECIMAL,
+  amount DECIMAL,
+  ctime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  utime TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE products (
+  id VARCHAR(40) PRIMARY KEY,
+  name VARCHAR(256),
+  price DECIMAL,
+  ctime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  utime TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
 
 CREATE DATABASE crm;
-CREATE TABLE users(id VARCHAR(40) primary key, name VARCHAR(256), age INT, ctime TIMESTAMP);
+CREATE TABLE users(
+  id VARCHAR(40) PRIMARY KEY,
+  name VARCHAR(256),
+  age INT,
+  ctime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  utime TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
 ```
 
 ### 写数据
@@ -39,8 +71,11 @@ CREATE TABLE users(id VARCHAR(40) primary key, name VARCHAR(256), age INT, ctime
 INSERT INTO users(id, name, age) VALUES('1', 'andy', 25);
 INSERT INTO users(id, name, age) VALUES('2', 'mary', 30);
 
-INSERT INTO orders(id, user_id, amount) VALUES('1', '1', 100);
-INSERT INTO orders(id, user_id, amount) VALUES('2', '1', 200);
+INSERT INTO products(id, name, price) VALUES('1', 'product1', 40);
+INSERT INTO orders VALUES('1', '1', 100);
+INSERT INTO order_items(id, order_id, product_id, quantity, price, amount)
+VALUES('1', '1', '1', 2, 50, 100);
+
 ```
 
 ### Kafka
@@ -310,3 +345,7 @@ http://localhost:5601
 - [Flink SQL CDC 上线！我们总结了 13 条生产实践经验](https://www.jianshu.com/p/d6ac601438a5)
 
 - [flink-cdc-connectors](https://github.com/ververica/flink-cdc-connectors)
+
+- [flink sql 实战案例之商品销量实时统计](https://blog.csdn.net/songjifei/article/details/105270666)
+
+-[电商例子](https://github.com/zhp8341/flink-streaming-platform-web/blob/87d9e6aa1ff498ea31ebf74ce4f757ade791c4d1/docs/sql_demo/demo_6.md)
