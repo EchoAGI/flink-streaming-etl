@@ -3,6 +3,7 @@ CREATE TABLE orders (
   user_id STRING,
   amount DECIMAL,
   status STRING,
+  channel STRING,
   ctime TIMESTAMP,
   utime TIMESTAMP,
   PRIMARY KEY (id) NOT ENFORCED,
@@ -96,6 +97,7 @@ CREATE TABLE order_view (
   id STRING PRIMARY KEY NOT ENFORCED,
   `order.amount` DECIMAL,
   `order.status` STRING,
+  `order.channel` STRING,
   `user.name` STRING,
   `user.age` INT,
   ctime TIMESTAMP,
@@ -105,6 +107,29 @@ CREATE TABLE order_view (
   'hosts' = 'http://elasticsearch:9200',
   'index' = 'order_view'
 );
+
+CREATE TABLE order_view_items (
+  id STRING PRIMARY KEY NOT ENFORCED,
+  `order.items` ARRAY<ROW<
+    `product.id` STRING,
+    price DECIMAL,
+    quantity BIGINT
+  >>
+) WITH (
+  'connector' = 'elasticsearch-7',
+  'hosts' = 'http://elasticsearch:9200',
+  'index' = 'order_view'
+);
+
+INSERT INTO order_view_items 
+SELECT order_id, LISTAGG(product_id, ',') AS `order.items` 
+FROM order_items
+GROUP BY order_id;
+
+SELECT order_id, 
+  COLLECT(ROW(product_id, price, quantity)) AS `order.items`
+FROM order_items
+GROUP BY order_id;
 
 CREATE TABLE user_view (
   id STRING PRIMARY KEY NOT ENFORCED,
@@ -155,6 +180,7 @@ INSERT INTO order_view
 SELECT orders.id id,
        orders.amount `order.amount`,
        orders.status `order.status`,
+       orders.channel `order.channel`,
        users.name `user.name`,
        users.age `user.age`,
        orders.ctime ctime,

@@ -12,6 +12,6 @@
     "database.include.list": "crm",
     "database.history.kafka.bootstrap.servers": "kafka:9092",
     "database.history.kafka.topic": "cdc.crm",
-    "include.schema.changes": "true"
+    "include.schema.changes": "false"
   }
 }

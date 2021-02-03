@@ -18,6 +18,10 @@ curl -i -X POST -H "Accept:application/json" -H "Content-Type:application/json" 
 curl -i -X DELETE -H "Accept:application/json" -H "Content-Type:application/json" http://localhost:8083/connectors/mysql-source-crm
 curl -i -X POST -H "Accept:application/json" -H "Content-Type:application/json" http://localhost:8083/connectors/ -d @register-crm.json
 
+curl -i -X DELETE -H "Accept:application/json" -H "Content-Type:application/json" http://localhost:8083/connectors/mongodb-source-crawler
+
+curl -i -X POST -H "Accept:application/json" -H "Content-Type:application/json" http://localhost:8083/connectors/ -d @register-crawler-mongodb.json
+
 curl -i -X GET -H "Accept:application/json" -H "Content-Type:application/json" http://localhost:8083/connectors
 ```
 
@@ -31,6 +35,7 @@ CREATE TABLE orders(
   id VARCHAR(40) PRIMARY KEY,
   user_id VARCHAR(40),
   amount decimal,
+  channel VARCHAR(256),
   status VARCHAR(40),
   ctime TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   utime TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
@@ -129,14 +134,17 @@ CREATE TABLE orders (
   id STRING,
   user_id STRING,
   amount DECIMAL,
-  ctime TIMESTAMP(0)
+  ctime TIMESTAMP(0),
+  utime TIMESTAMP(0),
+  proc_time AS PROCTIME(),
+  PRIMARY KEY (id) NOT ENFORCED
 ) WITH (
   'connector' = 'kafka',
   'topic' = 'shard1.ec.orders',
   'properties.bootstrap.servers' = 'kafka:9092',
   'properties.group.id' = 'cdc',
   'format' = 'debezium-json',
-  'debezium-json.schema-include' = 'true',
+  'debezium-json.schema-include' = 'false',
   'debezium-json.ignore-parse-errors' = 'true',
   'debezium-json.timestamp-format.standard' = 'ISO-8601'
 );
@@ -168,14 +176,16 @@ CREATE TABLE orders (
 CREATE TABLE stream_users(
   id STRING,
   name STRING,
-  age int
+  age INT,
+  ctime TIMESTAMP,
+  proc_time AS PROCTIME()
 ) WITH (
   'connector' = 'kafka',
   'topic' = 'shard1.crm.users',
   'properties.bootstrap.servers' = 'kafka:9092',
   'properties.group.id' = 'cdc',
   'format' = 'debezium-json',
-  'debezium-json.schema-include' = 'true'
+  'debezium-json.schema-include' = 'false'
 );
 ```
 
@@ -349,3 +359,5 @@ http://localhost:5601
 - [flink sql 实战案例之商品销量实时统计](https://blog.csdn.net/songjifei/article/details/105270666)
 
 -[电商例子](https://github.com/zhp8341/flink-streaming-platform-web/blob/87d9e6aa1ff498ea31ebf74ce4f757ade791c4d1/docs/sql_demo/demo_6.md)
+
+- [flink debezium 格式](https://ci.apache.org/projects/flink/flink-docs-release-1.11/zh/dev/table/connectors/formats/debezium.html)

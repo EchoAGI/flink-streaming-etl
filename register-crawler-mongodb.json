@@ -1,0 +1,15 @@
+{
+  "name": "mongodb-source-crawler",
+  "config": {
+    "connector.class": "io.debezium.connector.mongodb.MongoDbConnector",
+    "mongodb.hosts": "mongodb:27017",
+    "mongodb.name": "crawler",
+    "mongodb.user": "root",
+    "mongodb.password": "root",
+    "database.whitelist": "crawler",
+    "tasks.max": 1,
+    "database.history.kafka.bootstrap.servers": "kafka:9092",
+    "database.history.kafka.topic": "cdc.crawler",
+    "include.schema.changes": "false"
+  }
+}

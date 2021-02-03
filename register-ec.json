@@ -12,6 +12,6 @@
     "database.include.list": "ec",
     "database.history.kafka.bootstrap.servers": "kafka:9092",
     "database.history.kafka.topic": "cdc.ec",
-    "include.schema.changes": "true"
+    "include.schema.changes": "false"
   }
 }

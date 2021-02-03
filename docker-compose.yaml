@@ -12,6 +12,14 @@ services:
       - zookeeper
     environment:
       - ZOOKEEPER_CONNECT=zookeeper:2181
+  mongodb:
+    image: debezium/example-mongodb:1.2
+    hostname: mongodb
+    ports:
+      - 27017:27017
+    environment:
+      - MONGODB_USER=debezium
+      - MONGODB_PASSWORD=dbz
   mysql:
     image: debezium/example-mysql:1.2
     ports:
